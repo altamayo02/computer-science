@@ -1,11 +1,19 @@
 import datetime
 import colorsys
-from math import dist
+import math
+import time
+from enum import Enum
 from PIL import Image
 
-SIZE = 10000
-PURPLE = (95, 0, 159)
-RED = (0, 31, 0)
+
+class Color(Enum):
+	PURPLE = (95, 0, 159)
+	GREEN = (0, 63, 0)
+	WHITE = (255, 255, 255)
+
+DATE = datetime.datetime.now()
+DATE = str(DATE).replace(":", "-")
+TIME = time.time()
 
 def semidist(n1, n2):
 	return n1 ** 2 + n2 ** 2
@@ -33,30 +41,40 @@ def is_prime(n):
     f += 6
   return True
 
+
+SIZE = 100
+RADII = []
+for n in range(1, round(math.sqrt(2) * SIZE) ** 2):
+	if is_prime(n):
+		RADII.append(round(math.sqrt(n), 4))
+
 plot = []
 for n1 in range(1, 1 + SIZE):
 	plot.append([])
 	for n2 in range(1, 1 + SIZE):
 		if n2 < n1: continue
 		prime = is_prime(semidist(n1, n2))
-		if n1 % 10 == 0:
+		if n1 % 100 == 0:
 			print(f"{n1} ** 2 + {n2} ** 2 = {semidist(n1, n2)}")
 		plot[n1 - 1].append(prime)
 
-date = datetime.datetime.now()
-date = str(date).replace(":", "-")
-img = Image.new(mode = "RGB", size = (SIZE + 1, SIZE + 1))
-for row in range(len(plot)):
-	for col in range(len(plot[0])):
+img = Image.new(mode = "RGB", size = (SIZE, SIZE))
+
+for row in range(SIZE):
+	for col in range(SIZE):
 		if col < row:
 			continue
-		# TODO - This is super wrong - prime check is with distance squared, not distance itself (e.g. (3, 4) = |5|)
-		if plot[row][col - row] and is_prime(round(dist([0, 0], [row, col]))):
-			img.putpixel((row, col), (255, 255, 255)) #hsv(row, col))
-		elif plot[row][col - row]:
-			img.putpixel((row, col), PURPLE) #hsv(row, col))
-		elif is_prime(round(dist([0, 0], [row, col]))):
-			img.putpixel((row, col), RED) #hsv(row, col))
+		is_int = plot[row][col - row]
+		is_int_sqrt = round(math.dist([0, 0], [row + 1, col + 1]), 4) in RADII
+		if is_int:
+			img.putpixel((row, col), Color.PURPLE.value) #hsv(row, col))
+		elif is_int_sqrt:
+			img.putpixel((row, col), Color.GREEN.value) #hsv(row, col))
+		print("")
+		print("")
+		print("\033c\033c")
+		print(f"{100 * round(row / SIZE + col / (SIZE ** 2), 5)}%")
+		print(f"{time.time() - TIME}")
 
-img.save(f"./data/img/{date}.png")
-print("Image saved.")
+img.save(f"./data/img/{DATE}.png")
+print("\nImage saved.")
