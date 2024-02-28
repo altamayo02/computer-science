@@ -43,10 +43,6 @@ def is_prime(n):
 
 
 SIZE = 100
-RADII = []
-for n in range(1, round(math.sqrt(2) * SIZE) ** 2):
-	if is_prime(n):
-		RADII.append(round(math.sqrt(n), 4))
 
 plot = []
 for n1 in range(1, 1 + SIZE):
@@ -60,21 +56,22 @@ for n1 in range(1, 1 + SIZE):
 
 img = Image.new(mode = "RGB", size = (SIZE, SIZE))
 
+for n in range(1, SIZE):
+	if is_prime(n):
+		for theta in range(45):
+			# TODO - Fix polar grid
+			img.putpixel((round(n * math.cos(theta)), round(n * math.sin(theta))), Color.GREEN.value) #hsv(row, col))
+			pass
+
 for row in range(SIZE):
 	for col in range(SIZE):
 		if col < row:
 			continue
-		is_int = plot[row][col - row]
-		is_int_sqrt = round(math.dist([0, 0], [row + 1, col + 1]), 4) in RADII
-		if is_int:
+		if plot[row][col - row]:
 			img.putpixel((row, col), Color.PURPLE.value) #hsv(row, col))
-		elif is_int_sqrt:
-			img.putpixel((row, col), Color.GREEN.value) #hsv(row, col))
-		print("")
-		print("")
-		print("\033c\033c")
+		print("\033c")
 		print(f"{100 * round(row / SIZE + col / (SIZE ** 2), 5)}%")
-		print(f"{time.time() - TIME}")
+		print(f"{time.time() - TIME} s")
 
 img.save(f"./data/img/{DATE}.png")
 print("\nImage saved.")
