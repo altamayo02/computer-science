@@ -41,23 +41,6 @@ def write_csv(content: str, filename: str, notify = False):
 def rand_color():
 	return (np.random.random(), np.random.random(), np.random.random(), 1)
 
-X = range(1, 100)
-Y = [n ** 2 for n in X]
-
-figure, axes = plt.subplots()
-plt.grid(True, "both")
-#plt.minorticks_on()
-#axes.yaxis.set_minor_locator(MultipleLocator(100))
-plt.xticks(X)
-plt.ylim(0, 50)
-
-color = rand_color()
-for line in Y:
-	plt.plot(X, [line for _ in X], c=color)
-Y = [n ** 2 + 4 for n in X]
-plt.plot(X, Y, marker="o", c=rand_color())
-#plt.show()
-
 TOP = 1500
 matrix = []
 for n in range(TOP):
@@ -70,7 +53,7 @@ for i in range(1, 1 + TOP):
 		if matrix[(i // gcd) - 1][(j // gcd) - 1]: continue
 		matrix[i - 1][j - 1] = True
 		dist = math.dist([0, 0], [i, j])
-		if dist == math.floor(dist):
+		if (dist / 5) == math.floor(dist / 5):
 			csv += f"{i},{j},{int(dist)}\n"
 	#print(i)
-write_csv(csv, "terns.csv", True)
+write_csv(csv, "k5terns.csv", True)
