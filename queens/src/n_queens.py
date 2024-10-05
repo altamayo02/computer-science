@@ -7,6 +7,7 @@ class Board:
 		self.matrix = copy.deepcopy(matrix)
 
 	def __eq__(self, other: Self):
+		# TODO - Have in mind rotations and mirrors
 		for i in range(len(self.matrix)):
 			for j in range(len(self.matrix[i])):
 				if self.matrix[i][j] != other.matrix[i][j]: return False
@@ -14,7 +15,7 @@ class Board:
 	
 	def __str__(self):
 		string = ""
-		for i in range(len(self.matrix)):
+		for i in range(len(self.matrix) - 1, -1, -1):
 			string += f'{" ".join(self.matrix[i])}\n'
 		string += "-----------------------------"
 		return string
@@ -68,7 +69,7 @@ def write_solutions(n, path: str):
 
 def write_fundamentals(n, path: str):
 	with open(f"{path}/{n}_fundamentals.md", 'w') as file:
-		boards = read_solutions(n, path)
+		boards = read_boards(n, path)
 		funds = fundamentals(boards)
 		for b in range(len(funds)):
 			for row in funds[b].matrix:
@@ -80,9 +81,14 @@ def write_fundamentals(n, path: str):
 			else:
 				file.write("-----------------------------")
 
-def read_solutions(n, path: str):
+def read_boards(n, path: str, fundamentals = False):
 	list_boards: list[Board] = []
-	with open(f"{path}/{n}_queens.md", 'r') as file:
+
+	suffix ="queens"
+	if fundamentals:
+		suffix = "fundamentals"
+
+	with open(f"{path}/{n}_{suffix}.md", 'r') as file:
 		string = file.read()
 		str_boards = string.split("-----------------------------\n")
 		for b in range(len(str_boards)):
@@ -140,8 +146,74 @@ def percentage(board_size, b, b2):
 	return (100 * b + 10 * b2) / board_size
 
 def solve(n):
-	write_solutions(n, './src/other/queens/md')
-	write_fundamentals(n, './src/other/queens/md')
+	write_solutions(n, './data/md')
+	write_fundamentals(n, './data/md')
 	print(f"Check md folder for {n}_queens.md and {n}_fundamentals.md")
 
-solve(13)
+def is_solution(board: Board):
+	fundamentals = read_boards(len(board.matrix), './data/md')
+	
+	for _ in range(2):
+		for _ in range(3):
+			if board in fundamentals: return True
+			board = rotate(board)
+		board = mirror(board)
+	
+	return False
+
+def permutate(board: Board, i1: int, i2: int):
+	permutated = copy.deepcopy(board)
+	permutated.matrix[i1], permutated.matrix[i2] = board.matrix[i2], board.matrix[i1]
+	return permutated
+
+def translate(board: Board, i0: int, j0: int):
+	translated = copy.deepcopy(board)
+	for i in range(len(board.matrix)):
+		for j in range(len(board.matrix)):
+			translated.matrix[i][j] = board.matrix[(i + i0) % len(board.matrix)][(j + j0) % len(board.matrix)]
+	return translated
+
+def analyze(board: Board):
+	solutions = []
+	for i1 in range(len(board.matrix)):
+		for i2 in range(i1 + 1, len(board.matrix)):
+			#if not (i1 == 0 and i2 == 2): continue
+			permutated = permutate(board, i1, i2)
+			for i0 in range(len(permutated.matrix)):
+				for j0 in range(len(permutated.matrix)):
+					translated = translate(permutated, i0, j0)
+					#print(translated)
+					if is_solution(translated):
+						print(f'\t{i1 + 1}, {i2 + 1}')
+						""" print(f"i1: {i1 + 1}, i2: {i2 + 1}; i0: {i0}, j0: {j0}")
+						print(translated)
+						print(f"IS A SOLUTION\n") """
+						if translated not in solutions:
+							print(translated)
+							solutions.append(translated)
+	return solutions
+
+test = read_boards(7, './data/md', True)[1]
+#test = read_boards(7, './data/md', True)[4]
+
+boards = [test]
+while True:
+	if len(boards) == 3:
+		pass
+	print()
+	print("CURRENTLY ANALYZING:")
+	print(boards[-1])
+	print()
+	analyzed = analyze(boards[-1])
+	if len(analyzed) > 0:
+		new = []
+		for board in analyzed:
+			if board not in boards:
+				new.append(board)
+		
+		if len(new) > 0:
+			boards += new
+		else: break
+	else:
+		print("FUCK!")
+		break

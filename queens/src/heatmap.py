@@ -113,11 +113,40 @@ class Visualizer(PyGame):
 				rect = pg.rect.Rect(i * self.CELL_SIZE, j * self.CELL_SIZE, self.CELL_SIZE, self.CELL_SIZE)
 				color = (0, 255, 0, 255 * self.matrix[i][j])
 				pg.draw.rect(self.surfaces["bg"][0], (0, 255, 0, 255 * self.matrix[i][j]), rect)
-				heat = self.FONT.render(f"{int(5 * self.matrix[i][j])}", True, color if self.matrix[i][j] < 1 else (0, 255, 255, 255 * self.matrix[i][j]), "black")
+				heat = self.FONT.render(f"{int(5 * self.matrix[i][j])}", True, color if self.matrix[i][j] < 1 else "magenta", "black")
 				self.surfaces["fg"][0].blit(heat, heat.get_rect(center=rect.center))
-
+				if self.matrix[i][j] >= 1:
+					y45 = j - i
+					y135 = j + i
+					pg.draw.line(self.surfaces["bg"][2], "magenta", (
+						0,
+						y45 * self.CELL_SIZE
+					), (
+						len(self.matrix) * self.CELL_SIZE,
+						(len(self.matrix) + y45) * self.CELL_SIZE
+					), 2)
+					pg.draw.line(self.surfaces["bg"][2], "magenta", (
+						0,
+						(y135 + 1) * self.CELL_SIZE
+					), (
+						(y135 + 1) * self.CELL_SIZE,
+						0
+					), 2)
+					""" pg.draw.line(self.surfaces["bg"][2], "magenta", (
+						(i + 0.5) * self.CELL_SIZE,
+						0
+					), (
+						(i + 0.5) * self.CELL_SIZE,
+						self.window.get_rect().h
+					), 2)
+					pg.draw.line(self.surfaces["bg"][2], "magenta", (
+						0,
+						(j + 0.5) * self.CELL_SIZE
+					), (
+						self.window.get_rect().w,
+						(j + 0.5) * self.CELL_SIZE
+					), 2) """
 				stats[str(int(5 * self.matrix[i][j]))] += 1
-		
 		pg.draw.rect(self.surfaces["fg"][2], (0, 0, 0, 127), self.window.get_rect())
 		txt_offset = self.FONT.render(f"{self.offset}", True, "purple", "black")
 		self.surfaces["fg"][2].blit(txt_offset, txt_offset.get_rect(centerx=self.window.get_rect().centerx))
@@ -156,7 +185,7 @@ class Visualizer(PyGame):
 		return True
 
 def main():
-	v = Visualizer(caption="N Queens", n=7)
+	v = Visualizer(caption="N Queens", n=17, cell_size=50)
 	v.run()
 
 if __name__ == "__main__":
