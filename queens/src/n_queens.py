@@ -6,12 +6,47 @@ class Board:
 	def __init__(self, matrix: list[list]):
 		self.matrix = copy.deepcopy(matrix)
 
-	def __eq__(self, other: Self):
-		# TODO - Have in mind rotations and mirrors
+	def rotate_cw(self):
+		rotated: list[list] = []
 		for i in range(len(self.matrix)):
-			for j in range(len(self.matrix[i])):
-				if self.matrix[i][j] != other.matrix[i][j]: return False
-		return True
+			rotated.append([])
+		for i in range(len(self.matrix)):
+			for j in range(len(self.matrix)):
+				rotated[len(self.matrix) - 1 - j].append(self.matrix[i][j])
+		self.matrix = rotated
+
+	def mirror(self):
+		mirrored: list[list] = []
+		for i in range(len(self.matrix)):
+			mirrored.append([])
+			for j in range(len(self.matrix)):
+				mirrored[i].append(self.matrix[i][len(self.matrix) - 1 - j])
+		self.matrix = mirrored
+
+	def translate(self, i0: int, j0: int):
+		translated: list[list] = []
+		for i in range(len(self.matrix)):
+			translated.append([])
+			for j in range(len(self.matrix)):
+				translated[i].append(self.matrix[(i + i0) % len(self.matrix)][(j + j0) % len(self.matrix)])
+		self.matrix = translated
+
+	def __eq__(self, other: Self):
+		def component_eq(other: Self):
+			for i in range(len(self.matrix)):
+				for j in range(len(self.matrix[i])):
+					if self.matrix[i][j] != other.matrix[i][j]: return False
+			return True
+		
+		dummy = copy.deepcopy(other)
+		for _ in range(2):
+			if component_eq(dummy): return True
+			for _ in range(3):
+				dummy.rotate_cw()
+				if component_eq(dummy):
+					return True
+			dummy.mirror()
+		return False
 	
 	def __str__(self):
 		string = ""
@@ -70,7 +105,7 @@ def write_solutions(n, path: str):
 def write_fundamentals(n, path: str):
 	with open(f"{path}/{n}_fundamentals.md", 'w') as file:
 		boards = read_boards(n, path)
-		funds = fundamentals(boards)
+		funds = deduplicate(boards)
 		for b in range(len(funds)):
 			for row in funds[b].matrix:
 				for col in row:
@@ -98,14 +133,21 @@ def read_boards(n, path: str, fundamentals = False):
 			for r in range(len(rows)):
 				list_boards[b].matrix.append([])
 
-				cols = rows[r].split(" ")
+				cols = rows[r].strip().split(" ")
 				for c in cols:
 					list_boards[b].matrix[r].append(c)
 	return list_boards
 
+# What the hell was I doing?
 def fundamentals(og_boards):
-	boards: list[Board] = copy.deepcopy(og_boards)
+	"""
+		Unused function
+	"""
+	
+	def percentage(board_size, b, b2):
+		return (100 * b + 10 * b2) / board_size
 
+	boards: list[Board] = copy.deepcopy(og_boards)
 	b = 0
 	while b < len(boards):
 		# Mirror of the current board
@@ -140,10 +182,19 @@ def fundamentals(og_boards):
 					if b >= len(boards): return boards
 					break
 		b += 1
+	
 	return boards
 
-def percentage(board_size, b, b2):
-	return (100 * b + 10 * b2) / board_size
+def deduplicate(boards: list[Board]):
+	"""
+	Filters out duplicate boards. Useful for identifying fundamentals.
+	"""
+
+	fundamentals = []
+	for board in boards:
+		if board not in fundamentals:
+			fundamentals.append(board)
+	return fundamentals
 
 def solve(n):
 	write_solutions(n, './data/md')
@@ -151,15 +202,8 @@ def solve(n):
 	print(f"Check md folder for {n}_queens.md and {n}_fundamentals.md")
 
 def is_solution(board: Board):
-	fundamentals = read_boards(len(board.matrix), './data/md')
-	
-	for _ in range(2):
-		for _ in range(3):
-			if board in fundamentals: return True
-			board = rotate(board)
-		board = mirror(board)
-	
-	return False
+	boards = read_boards(len(board.matrix), './data/md')
+	return board in boards
 
 def permutate(board: Board, i1: int, i2: int):
 	permutated = copy.deepcopy(board)
@@ -182,29 +226,39 @@ def analyze(board: Board):
 			for i0 in range(len(permutated.matrix)):
 				for j0 in range(len(permutated.matrix)):
 					translated = translate(permutated, i0, j0)
-					#print(translated)
 					if is_solution(translated):
-						print(f'\t{i1 + 1}, {i2 + 1}')
-						""" print(f"i1: {i1 + 1}, i2: {i2 + 1}; i0: {i0}, j0: {j0}")
+						#print(f'\t{i1 + 1}, {i2 + 1}')
+						print(f'\ti1: {i1 + 1}, i2: {i2 + 1}; i0: {i0}, j0: {j0}')
+						"""
 						print(translated)
-						print(f"IS A SOLUTION\n") """
+						print(f"IS A SOLUTION\n")
+						"""
 						if translated not in solutions:
-							print(translated)
+							#print(translated)
 							solutions.append(translated)
 	return solutions
 
-test = read_boards(7, './data/md', True)[1]
+test = read_boards(9, './data/md', True)[0]
 #test = read_boards(7, './data/md', True)[4]
 
 boards = [test]
-while True:
-	if len(boards) == 3:
-		pass
+for b in boards:
+	print(f"Current stack size: {len(boards)}")
+	""" if len(boards) == 1:
+		print("TWEAK:")
+		#boards[2].mirror()
+		boards[0].rotate_cw()
+		boards[0].translate(-1, 1)
+		print(boards[0])
+		print("END OF TWEAK") """
 	print()
 	print("CURRENTLY ANALYZING:")
-	print(boards[-1])
+	print(b)
+	analyzed = analyze(b)
+	print("GOT:")
+	for a in analyzed:
+		print(a)
 	print()
-	analyzed = analyze(boards[-1])
 	if len(analyzed) > 0:
 		new = []
 		for board in analyzed:
@@ -213,7 +267,6 @@ while True:
 		
 		if len(new) > 0:
 			boards += new
-		else: break
 	else:
 		print("FUCK!")
 		break
