@@ -238,19 +238,18 @@ def analyze(board: Board):
 							solutions.append(translated)
 	return solutions
 
-test = read_boards(9, './data/md', True)[0]
-#test = read_boards(7, './data/md', True)[4]
+test = read_boards(7, './data/md', True)[1]
+"""
+test = read_boards(8, './data/md', True)[1]
+test.rotate_cw()
+test.rotate_cw()
+test.rotate_cw()
+"""
+#test = read_boards(9, './data/md', True)[0]
 
 boards = [test]
 for b in boards:
 	print(f"Current stack size: {len(boards)}")
-	""" if len(boards) == 1:
-		print("TWEAK:")
-		#boards[2].mirror()
-		boards[0].rotate_cw()
-		boards[0].translate(-1, 1)
-		print(boards[0])
-		print("END OF TWEAK") """
 	print()
 	print("CURRENTLY ANALYZING:")
 	print(b)

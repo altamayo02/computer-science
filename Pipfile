@@ -8,6 +8,7 @@ pillow = "*"
 matplotlib = "*"
 pygame = "*"
 chess = "*"
+graphviz = "*"
 
 [dev-packages]
 
