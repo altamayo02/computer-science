@@ -238,6 +238,28 @@ def analyze(board: Board):
 							solutions.append(translated)
 	return solutions
 
+def analyze2(board: Board, name: str):
+	solutions = {}
+	for i1 in range(len(board.matrix)):
+		for i2 in range(i1 + 1, len(board.matrix)):
+			#if not (i1 == 0 and i2 == 2): continue
+			permutated = permutate(board, i1, i2)
+			for i0 in range(len(permutated.matrix)):
+				for j0 in range(len(permutated.matrix)):
+					translated = translate(permutated, i0, j0)
+					if is_solution(translated):
+						solutions[name][f'{name}{'THING GOES HERE'}']
+						#print(f'\t{i1 + 1}, {i2 + 1}')
+						print(f'\ti1: {i1 + 1}, i2: {i2 + 1}; i0: {i0}, j0: {j0}')
+						"""
+						print(translated)
+						print(f"IS A SOLUTION\n")
+						"""
+						if translated not in solutions:
+							#print(translated)
+							solutions.append(translated)
+	return solutions
+
 test = read_boards(7, './data/md', True)[1]
 """
 test = read_boards(8, './data/md', True)[1]
