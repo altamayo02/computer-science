@@ -185,7 +185,7 @@ class Visualizer(PyGame):
 		return True
 
 def main():
-	v = Visualizer(caption="N Queens", n=17, cell_size=50)
+	v = Visualizer(caption="N Queens", n=19, cell_size=50)
 	v.run()
 
 if __name__ == "__main__":

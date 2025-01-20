@@ -105,7 +105,7 @@ def write_solutions(n, path: str):
 def write_fundamentals(n, path: str):
 	with open(f"{path}/{n}_fundamentals.md", 'w') as file:
 		boards = read_boards(n, path)
-		funds = deduplicate(boards)
+		funds = identify(boards)
 		for b in range(len(funds)):
 			for row in funds[b].matrix:
 				for col in row:
@@ -185,7 +185,7 @@ def fundamentals(og_boards):
 	
 	return boards
 
-def deduplicate(boards: list[Board]):
+def identify(boards: list[Board]):
 	"""
 	Filters out duplicate boards. Useful for identifying fundamentals.
 	"""
@@ -238,8 +238,9 @@ def analyze(board: Board):
 							solutions.append(translated)
 	return solutions
 
-def analyze2(board: Board, name: str):
-	solutions = {}
+def analyze_nodes(board: Board, name: str):
+	solutions = []
+	relations = {}
 	for i1 in range(len(board.matrix)):
 		for i2 in range(i1 + 1, len(board.matrix)):
 			#if not (i1 == 0 and i2 == 2): continue
@@ -248,17 +249,14 @@ def analyze2(board: Board, name: str):
 				for j0 in range(len(permutated.matrix)):
 					translated = translate(permutated, i0, j0)
 					if is_solution(translated):
-						solutions[name][f'{name}{'THING GOES HERE'}']
-						#print(f'\t{i1 + 1}, {i2 + 1}')
-						print(f'\ti1: {i1 + 1}, i2: {i2 + 1}; i0: {i0}, j0: {j0}')
-						"""
-						print(translated)
-						print(f"IS A SOLUTION\n")
-						"""
 						if translated not in solutions:
-							#print(translated)
 							solutions.append(translated)
-	return solutions
+							if (f'{name}.{len(relations) + 1}' in relations):
+								relations[f'{name}.{len(relations) + 1}'] += f', {i1 + 1}..{i2 + 1}'
+							else:
+								relations[f'{name}.{len(relations) + 1}'] = f'{i1 + 1}..{i2 + 1}'
+						print(f'\ti1: {i1 + 1}, i2: {i2 + 1}; i0: {i0}, j0: {j0}')
+	return relations
 
 test = read_boards(7, './data/md', True)[1]
 """
@@ -269,7 +267,7 @@ test.rotate_cw()
 """
 #test = read_boards(9, './data/md', True)[0]
 
-boards = [test]
+""" boards = [test]
 for b in boards:
 	print(f"Current stack size: {len(boards)}")
 	print()
@@ -290,4 +288,6 @@ for b in boards:
 			boards += new
 	else:
 		print("FUCK!")
-		break
+		break """
+
+print(analyze_nodes(test, "8"))
