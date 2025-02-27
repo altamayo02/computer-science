@@ -1,5 +1,11 @@
 from services.json_service import JsonService
 
+def gcd(a, b):
+	"""Return the greatest common factor of two numbers."""
+	while b:
+		a, b = b, a % b
+	return abs(a)
+
 def is_prime(n):
 	"""Check if a number is prime."""
 	if n <= 1: return False
@@ -16,62 +22,37 @@ def is_prime(n):
 	
 	return True
 
-def gcd(a, b):
-	"""Return the greatest common factor of two numbers."""
-	while b:
-		a, b = b, a % b
-	return abs(a)
-
-def factor(n):
-	"""Return the list of factors of a number."""
-	# Ensure the number is positive
-	if n <= 0:
-		return []
-
-	factors = []
-	# Loop through possible factors
-	for i in range(1, n + 1):
-		if n % i == 0:
-			factors.append(i)
-	
-	return factors
-
 def factor_primes(n):
-	"""Return the list of prime factors of a number."""
+	"""Return the factors of a number."""
 	prime_factors = []
 
-	if n in [0, 1]: return []
+	if n == 0: return []
 	elif n < 0:
 		prime_factors.append(-1)
 		n = -n
 
-	while n % 2 == 0:
-		prime_factors.append(2)
-		n //= 2
-
-	for i in range(3, int(n ** 0.5) + 1, 2):
-		while n % i == 0:
-			prime_factors.append(i)
-			n //= i
-
-	# Append n if it's a prime number greater than 2
-	if n > 2:
-		prime_factors.append(n)
-
-	return prime_factors
+	primes = gen_primes(n)
+	# Check for factors from 2 to n
+	for p in primes:
+		if n % p == 0:
+			prime_factors.append(p)
+	
+	return list(prime_factors)
 
 def product(lst: list[int]):
-	"""Return the product of all items in the list."""
-	product = 1
-	for item in lst:
-		product *= item
-	return product
+		"""Return the product of all items in the list."""
+		product = 1
+		for item in lst:
+				product *= item
+		return product
 
 def perfect_solutions(n):
 	if n < 4: return []
 	solutions = []
-	#if n % 2 == 0 or n % 3 == 0: return solutions
+	if n % 2 == 0 or n % 3 == 0: return solutions
 
+	primes = gen_primes(n)
+	print(primes)
 	# After first half: Same combination, different orientation
 	# (We care about the combination, not the permutation)
 	for c1 in range(1, int(n / 2) + 1):
@@ -81,9 +62,10 @@ def perfect_solutions(n):
 		# diag2 is implied negative
 		diag1 = n - c1
 		# i1 will be prime and j2 will be 1, but 0 < j1 < j2
-		if is_prime(diag1): continue
+		if diag1 in primes: continue
 		diag2 = c1
 		factors1 = factor_primes(diag1)
+		print(factors1)
 		factors2 = factor_primes(diag2)
 
 		# Pad with ones if needed
@@ -135,67 +117,78 @@ def perfect_solutions(n):
 					solutions.append([i1, j1, i2, j2])
 	return solutions
 
-""" print(prime_factors(3628800))
-print(prime_factors(3628800)[:5])
-print(prime_factors(3628800)[5:])
-print(prime_factors(9699690))
-print(prime_factors(9699690)[:5])
-print(prime_factors(9699690)[5:]) """
+def gen_perfect_composites(limit):
+	composites = []
+	primes = gen_primes(limit)
+	for n in range(0, limit):
+		#print(f'{n}...')
+		if n not in primes:
+			sols = perfect_solutions(n)
+			print(n)
+			print(sols)
+			if len(sols) != 0: composites.append(n)
+		#print('\u001b[;H')
+	#print(composites)
 
-""" k = 1000
-l = 40
-for i in range(0, int(k / 40)):
-	# Header values (0 to 25 * 40)
-	x = '\u001b[96m'
-	y = ''
-	for n in range(l * i, l * (i + 1)):
-		x += "%3d " % n
+	composite_factors = { c: {} for c in composites }
+	for c in composites:
+		#print("%4d" % c, end=' ')
+		factors = factor_primes(c)
 
-		solutions = perfect_solutions(n)
-		if len(solutions) == 0:
-			y += '\u001b[91m'
-		else:
-			y += "\u001b[93m"	if is_prime(n) else	'\u001b[103m'
-		
-		y += "%3d\u001b[0m " % len(solutions)
-	print(x)
-	print(y) """
-
-""" composites = []
-for n in range(0, 10000):
-	print(f'{n}...')
-	
-	sols = perfect_solutions(n)
-	if len(sols) != 0 and not is_prime(n): composites.append(n)
-
-	print('\u001b[;H')
-print(composites) """
-
-""" with open('./queens/data/md/10000_perfect_composites.md', 'r') as file:
-	composite_factors = {}
-
-	for line in file:
-		line = int(line)
-		#print("%4d" % line, end=' ')
-		factors = factor_primes(line)
-
-		composite_factors[line] = {}
 		for f in factors:
-			if f not in composite_factors[line]:
-				composite_factors[line][f] = 1
+			if f not in composite_factors[c]:
+				composite_factors[c][f] = 1
 			else:
-				composite_factors[line][f] += 1
+				composite_factors[c][f] += 1
 	
 	json = JsonService()
-	json.save_json('./queens/data/json/10000_perfect_composite_factors.json', composite_factors) """
+	json.save_json(f'./queens/data/json/{limit}_perfect_composite_factors.json', composite_factors)
 
-for n in range(1, 50, 2):
+############## Testing
+
+def primes_table(k, l):
+	# k = 1000
+	# l = 40
+	for i in range(0, int(k / 40)):
+		# Header values (0 to 25 * 40)
+		x = '\u001b[96m'
+		y = ''
+		for n in range(l * i, l * (i + 1)):
+			x += "%3d " % n
+
+			solutions = perfect_solutions(n)
+			if len(solutions) == 0:
+				y += '\u001b[91m'
+			else:
+				y += "\u001b[93m"	if is_prime(n) else	'\u001b[103m'
+			
+			y += "%3d\u001b[0m " % len(solutions)
+		print(x)
+		print(y)
+
+def gen_primes(limit):
+	if limit <= 1: return []
+	elif limit == 2: return [2]
+
+	primes = [2, 3]
+	test_num = 5
+	while test_num <= limit:
+		is_prime = True
+		for p in primes:
+			if test_num % p == 0:
+				is_prime = False
+				break
+		if is_prime:
+			primes.append(test_num)
+		test_num += 2
+	return primes
+
+print(perfect_solutions(5))
+
+""" for n in range(1, 100, 2):
 	print("%d:" % n)
 	for sol in perfect_solutions(n):
-		print("\t%s" % sol)
+		print("\t%s" % sol) """
 
 """ for n in range(1, 100, 2):
 	print("%d: \n\t%s" % (n, len(perfect_solutions(n)))) """
-
-
-""" print(factor_primes(986410)) """
